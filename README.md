@@ -115,5 +115,16 @@ class Strategy:
             self.position_open("short", current_price, 1)  # Открытие шорт-позиции
 ```
 
-## запуск
+## Запуск
+
+Скрипт выведет доступные счета для текущего токена
+
 - python main.py
+
+
+Запуск торговли 1 лотом фонда TPAY ~100р.
+
+- python main.py --account 123456789
+
+
+
