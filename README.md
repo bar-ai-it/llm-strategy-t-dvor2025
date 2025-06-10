@@ -115,3 +115,5 @@ class Strategy:
             self.position_open("short", current_price, 1)  # Открытие шорт-позиции
 
 
+## запуск
+- python main.py
