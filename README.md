@@ -113,7 +113,7 @@ class Strategy:
             self.position_open("long", current_price, 1)  # Открытие лонг-позиции
         elif rsi > 70:
             self.position_open("short", current_price, 1)  # Открытие шорт-позиции
-
+```
 
 ## запуск
 - python main.py
