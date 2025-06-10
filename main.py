@@ -70,14 +70,14 @@ async def main():
         while True:
             await asyncio.sleep(1)
 
-    hello_strategy = Strategy(AsyncClient(TOKEN))
+    hello_strategy = Strategy(AsyncClient(TOKEN), INSTRUMENT_FOR_TRADE, work_account)
 
     async with AsyncClient(TOKEN) as client:
 
         async for marketdata in client.market_data_stream.market_data_stream(
             request_iterator()
         ):
-            hello_strategy.update(marketdata)
+            await hello_strategy.update(marketdata)
 
 
 if __name__ == "__main__":
