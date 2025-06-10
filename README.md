@@ -66,53 +66,64 @@ class Strategy:
 
     # ... (остальные методы класса остаются без изменений)
 
-    def work(self):
-        # Проверка достаточности данных для расчета RSI
-        if len(self.minutes) < 15:
+        def work(self):
+        # Параметры стратегии
+        period = 14  # период RSI
+        stop_loss_pct = 0.02  # 2%
+        take_profit_pct = 0.04  # 4%
+
+        # Проверяем достаточность истории
+        if len(self.minutes) < period + 1:
             return
-        
-        # Получение текущей цены
-        current_price = self.minutes[-1]["price"]
-        
-        # Проверка условий закрытия позиции
-        position = self.position_get()
-        if position["lots"] != 0:
-            # Для лонг-позиции
-            if position["lots"] > 0:
-                if current_price <= position["avg_price"] * 0.98:  # Стоп-лосс 2%
-                    self.position_close()
-                elif current_price >= position["avg_price"] * 1.04:  # Тейк-профит 4%
-                    self.position_close()
-            
-            # Для шорт-позиции
-            elif position["lots"] < 0:
-                if current_price >= position["avg_price"] * 1.02:  # Стоп-лосс 2%
-                    self.position_close()
-                elif current_price <= position["avg_price"] * 0.96:  # Тейк-профит 4%
-                    self.position_close()
-            return
-        
-        # Расчет RSI за 14 периодов
-        prices = [m["price"] for m in self.minutes[-15:]]
-        deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
-        
-        gains = [d if d > 0 else 0 for d in deltas]
-        losses = [-d if d < 0 else 0 for d in deltas]
-        
-        avg_gain = sum(gains) / 14
-        avg_loss = sum(losses) / 14
-        
+
+        # Вытаскиваем цены закрытия
+        closes = [float(m["price"]) for m in self.minutes]
+
+        # Вычисляем изменения
+        gains = []
+        losses = []
+        for i in range(1, period + 1):
+            change = closes[-i] - closes[-i - 1]
+            if change > 0:
+                gains.append(change)
+                losses.append(0)
+            else:
+                gains.append(0)
+                losses.append(abs(change))
+
+        # Средние приросты и потери
+        avg_gain = sum(gains) / period
+        avg_loss = sum(losses) / period
         if avg_loss == 0:
             rsi = 100
         else:
             rs = avg_gain / avg_loss
             rsi = 100 - (100 / (1 + rs))
-        
-        # Проверка условий открытия позиции
-        if rsi < 30:
-            self.position_open("long", current_price, 1)  # Открытие лонг-позиции
-        elif rsi > 70:
-            self.position_open("short", current_price, 1)  # Открытие шорт-позиции
+
+        current_price = closes[-1]
+        pos = self.position_get()
+
+        # Логика входа
+        if pos["lots"] == 0 and rsi < 30:
+            price_q = decimal_to_quotation(Decimal(current_price))
+            asyncio.create_task(self.position_open('long', price_q, 1))
+            return
+
+        # Логика выхода по стоп-лосс, тейк-профит или RSI
+        if pos["lots"] > 0:
+            entry_price = pos["avg_price"]
+            # стоп-лосс
+            if current_price <= entry_price * (1 - stop_loss_pct):
+                asyncio.create_task(self.position_close())
+                return
+            # тейк-профит
+            if current_price >= entry_price * (1 + take_profit_pct):
+                asyncio.create_task(self.position_close())
+                return
+            # перекупленность
+            if rsi > 70:
+                asyncio.create_task(self.position_close())
+                return
 ```
 
 ## Запуск
