@@ -142,5 +142,8 @@ class Strategy:
 
 - python main.py --account 123456789
 
+Запуск торговли 1 лотом акциями PIKK ~560р. на аккаунте 123456789 из списка
+
+- python main.py --account 123456789 --figi BBG004S68BH6 
 
 
