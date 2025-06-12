@@ -12,6 +12,7 @@ from tinkoff.invest import (
     SubscriptionAction,
     SubscriptionInterval,
 )
+
 from tinkoff.invest import Client
 from strategies.hello_world_t_dvor2025 import Strategy #импортируем стратегию
 
@@ -20,6 +21,7 @@ parser = argparse.ArgumentParser(
     description="Hello world T-Dvor 2025"
 )
 parser.add_argument("--account", "-a", type=str, help="номер счета")
+parser.add_argument("--figi", type=str, help="figi инструмента")
 args = parser.parse_args()
 
 #Загружаем переменные окружения
@@ -28,6 +30,9 @@ load_dotenv(Path(os.getcwd()).resolve() / ".env")
 TOKEN = os.environ["INVEST_TOKEN"]
 # INSTRUMENT_FOR_TRADE = os.environ["INSTRUMENT_FOR_TRADE"]
 INSTRUMENT_FOR_TRADE = "TCS00A108WX3" #figi для TPAY  https://developer.tbank.ru/invest/intro/intro/faq_identification
+
+INSTRUMENT_FOR_TRADE = args.figi if args.figi else INSTRUMENT_FOR_TRADE
+
 
 accounts = []
 work_account = {}

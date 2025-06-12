@@ -3,9 +3,14 @@ from uuid import uuid4
 import time
 from tinkoff.invest import AsyncClient
 from decimal import Decimal
+from datetime import timedelta
 from tinkoff.invest.utils import decimal_to_quotation, quotation_to_decimal
 from tinkoff.invest import Client, OrderDirection, Quotation, OrderType, PostOrderResponse, OrderState
 from tinkoff.invest.schemas import OrderDirection, OrderType, PostOrderAsyncRequest
+from tinkoff.invest import CandleInterval, Client
+from tinkoff.invest.schemas import CandleSource
+from tinkoff.invest.utils import now
+
 
 class Strategy:
     def __init__(self, client, instrument, work_account):
@@ -17,6 +22,28 @@ class Strategy:
         self.instrument = instrument
         self.work_account = work_account
         self.last_trade = time.time()
+
+        #загружаем данные из истории
+        with Client(self.client._token, app_name=self.client._app_name) as client:
+            for candle in client.get_all_candles(
+                    instrument_id=self.instrument,
+                    from_=now() - timedelta(minutes=self.history_count * 3), #могут быть пропущены данные
+                    interval=CandleInterval.CANDLE_INTERVAL_1_MIN,
+                    candle_source_type=CandleSource.CANDLE_SOURCE_UNSPECIFIED,
+            ):
+                # print(candle)
+                current_minute = {
+                    "minute": candle.time.strftime('%Y-%m-%d %H:%M:%S'),
+                    "price": str(quotation_to_decimal(candle.close)),
+                    "vol": candle.volume
+                }
+                # обрабатываем логику только при смене минуты
+                if not self.minutes or self.minutes[-1]["minute"] != current_minute["minute"]:
+                    # добавляем новую минуту
+                    self.minutes.append(current_minute)
+
+        return
+
 
     async def update(self, marketdata):
         #market data https://tinkoff.github.io/investAPI/marketdata/#marketdataresponse
@@ -36,12 +63,15 @@ class Strategy:
             #добавляем новую минуту
             self.minutes.append(current_minute)
             #оставляем только нужно кол-во минут
-            if len(self.minutes) > self.history_count:
+            while len(self.minutes) > self.history_count:
                 self.minutes.pop(0)
 
             print(current_minute)
 
             self.work()
+        else:
+            self.minutes[-1] = current_minute
+
 
         # Пример работы
         # Покупка
@@ -150,5 +180,4 @@ class Strategy:
 
     #функция которая будет на основе данных self.minutes принимать решения о покупке/продаже
     def work(self):
-
         return
