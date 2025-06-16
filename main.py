@@ -29,7 +29,7 @@ load_dotenv(Path(os.getcwd()).resolve() / ".env")
 
 TOKEN = os.environ["INVEST_TOKEN"]
 # INSTRUMENT_FOR_TRADE = os.environ["INSTRUMENT_FOR_TRADE"]
-INSTRUMENT_FOR_TRADE = "TCS00A108WX3" #figi для TPAY  https://developer.tbank.ru/invest/intro/intro/faq_identification
+INSTRUMENT_FOR_TRADE = "BBG004730ZJ9" #figi для VTBR  https://developer.tbank.ru/invest/intro/intro/faq_identification
 
 INSTRUMENT_FOR_TRADE = args.figi if args.figi else INSTRUMENT_FOR_TRADE
 
