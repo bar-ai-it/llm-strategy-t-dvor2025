@@ -47,7 +47,7 @@ pip install -r requirements.txt
 ниже код из класса Strategy, файл: strategies/hello_world_t_dvor2025.py
 ```
 
-Результат сохранен в strategies/hello_world_t_dvor2025_llmresult.py
+Результат сохранен в strategies/hello_world_t_dvor2025.py
 
 
 # Реализация торговой стратегии на Python
